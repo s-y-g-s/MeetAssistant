@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <typeAliases>
+        <package name="com.treemoon.MeetAssist.pojo"/>
+    </typeAliases>
+
+    <mappers>
+        <!-- 加载 SQL 映射文件 -->
+        <package name="com.treemoon.MeetAssist.mapper"/>
+    </mappers>
+
+</configuration>
