@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<meta charset="UTF-8">
+<body>
+<h2>SSE 测试</h2>
+<div id="result"></div>
+
+<script>
+    const taskKey = '184588';
+    const queryParams = new URLSearchParams({
+        audioFilePath: 'D:\\\\output_audio.pcm',
+    }).toString();
+    const eventSource = new EventSource(`http://localhost:8088/subscribe/${taskKey}?${queryParams}`);
+
+    // 监听自定义事件（与服务端事件名匹配）
+    eventSource.addEventListener('transcription', function(e) {
+        const data = JSON.parse(e.data);
+        console.log('收到转录数据:', data);
+        document.getElementById('result').innerHTML += `<p>${JSON.stringify(data)}</p>`;
+    });
+
+    // 监听错误事件
+    eventSource.onerror = function(err) {
+        console.error("SSE错误:", err);
+        eventSource.close();
+    };
+</script>
+</body>
+</html>

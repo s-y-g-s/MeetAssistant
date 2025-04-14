@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>SSE 接口测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        #input-section {
+            margin-bottom: 20px;
+        }
+        #question {
+            width: 70%;
+            padding: 8px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #response {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 200px;
+            white-space: pre-wrap;
+        }
+        .error {
+            color: #dc3545;
+            margin-top: 10px;
+        }
+        .status {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>SSE 接口测试</h1>
+
+    <div id="input-section">
+        <input type="text" id="question" placeholder="请输入您的问题...">
+        <button onclick="startChat()" id="ask-btn">发送问题</button>
+        <button onclick="closeConnection()" id="close-btn" disabled>关闭连接</button>
+    </div>
+
+    <div class="status" id="connection-status">状态：未连接</div>
+
+    <div id="response"></div>
+    <div id="error" class="error"></div>
+</div>
+
+<script>
+    let eventSource = null;
+    let abortController = null;
+
+    function updateUIState(connected) {
+        document.getElementById('ask-btn').disabled = connected;
+        document.getElementById('close-btn').disabled = !connected;
+        document.getElementById('connection-status').textContent =
+            `状态：${connected ? '已连接' : '未连接'}`;
+    }
+
+    async function startChat() {
+        const question = document.getElementById('question').value;
+        if (!question) {
+            alert('请输入问题内容');
+            return;
+        }
+
+        if (abortController) {
+            abortController.abort();
+        }
+
+        abortController = new AbortController();
+        updateUIState(true);
+        document.getElementById('error').textContent = '';
+        document.getElementById('response').textContent = '等待响应...\n';
+
+        try {
+            const response = await fetch('http://localhost:8088/Chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'text/event-stream',
+                },
+                body: JSON.stringify({
+                    input: question,
+                    isInMeeting: false
+                }),
+                signal: abortController.signal,
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP 错误: ${response.status}`);
+            }
+
+            if (!response.body) {
+                throw new Error('无法读取流数据');
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let buffer = '';
+            let currentEvent = null;
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop();
+
+                for (const line of lines) {
+                    if (line.startsWith('event:')) {
+                        currentEvent = line.substring(6).trim();
+                    } else if (line.startsWith('data:')) {
+                        try {
+                            const eventData = JSON.parse(line.substring(5).trim());
+                            console.log('Received data:', eventData);
+
+                            if (currentEvent === 'chat' && eventData.data && eventData.data.text) {
+                                const cleanText = eventData.data.text.replace(/^"|"$/g, '');
+                                appendResponse(cleanText);
+                            }
+                        } catch (e) {
+                            console.error('JSON解析错误:', e);
+                            appendResponse(line.substring(5).trim());
+                        }
+                    }
+                }
+            }
+
+            appendResponse('\n\n=== 对话结束 ===');
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                showError(`错误: ${error.message}`);
+            }
+        } finally {
+            closeConnection();
+        }
+    }
+
+    function closeConnection() {
+        if (abortController) {
+            abortController.abort();
+            abortController = null;
+        }
+        updateUIState(false);
+    }
+
+    function appendResponse(text) {
+        const responseDiv = document.getElementById('response');
+        responseDiv.textContent += text;
+        responseDiv.scrollTop = responseDiv.scrollHeight;
+    }
+
+    function showError(message) {
+        document.getElementById('error').textContent = message;
+    }
+</script>
+</body>
+</html>

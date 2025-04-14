@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.treemoon.MeetAssist.mapper.TranscriptionMapper">
+
+    <resultMap id="transcriptionResultMap" type="Transcription">
+        <result column="begin_time" property="beginTime"/>
+        <result column="index_text" property="index"/>
+        <result column="task_id" property="taskKey"/>
+    </resultMap>
+
+    <insert id="addTranscription" useGeneratedKeys="true" keyProperty="id">
+        insert into tb_transcription(begin_time, text, task_id, index_text)
+        value (#{beginTime},#{text},#{taskKey},#{index});
+    </insert>
+    
+    <insert id="addEnhanceTrans" useGeneratedKeys="true" keyProperty="id">
+        insert into tb_enhancetrans(sentence_id, text, start_time, card)
+        value (#{index},#{text},#{beginTime},#{card});
+    </insert>
+
+    <select id="selectStartTime" resultType="int">
+        select begin_time from tb_transcription where index_text=#{currentIndex};
+    </select>
+    
+    <select id="getAll" resultMap="transcriptionResultMap">
+        select * from tb_transcription
+        order by index_text asc;
+
+    </select>
+
+
+
+</mapper>

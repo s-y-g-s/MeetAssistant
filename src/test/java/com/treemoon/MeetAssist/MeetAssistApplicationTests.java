@@ -1,0 +1,13 @@
+package com.treemoon.MeetAssist;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class MeetAssistApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}

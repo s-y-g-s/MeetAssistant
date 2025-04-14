@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.treemoon.MeetAssist.mapper.EnhanceTransMapper">
+    
+    <resultMap id="enhanceTransResultMap" type="Transcription">
+        <result column="start_time" property="beginTime"/>
+        <result column="sentence_id" property="index"/>
+    </resultMap>
+
+
+    <select id="getJson" resultMap="enhanceTransResultMap">
+        select * from tb_enhancetrans
+        order by sentence_id asc ;
+    </select>
+
+    <select id="selectAllBiggerThanIndex" resultMap="enhanceTransResultMap">
+        select * from tb_enhancetrans
+        where sentence_id &gt;= #{index};
+    </select>
+
+</mapper>
