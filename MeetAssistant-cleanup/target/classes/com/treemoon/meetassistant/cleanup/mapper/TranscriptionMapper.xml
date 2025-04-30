@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.treemoon.meetassistant.cleanup.mapper.TranscriptionMapper">
+
+    <resultMap id="transcriptionResultMap" type="Transcription">
+        <result column="start_time" property="startTime"/>
+        <result column="sentence_index" property="sentenceIndex"/>
+        <result column="task_key" property="taskKey"/>
+        <result column="text_content" property="textContent"/>
+    </resultMap>
+
+    <insert id="addTranscription" useGeneratedKeys="true" keyProperty="id">
+        insert into tb_transcription(start_time, sentence_index, task_key, text_content)
+        value (#{startTime},#{sentenceIndex},#{taskKey},#{textContent});
+    </insert>
+
+    <select id="selectStartTimeBySentenceIndex" resultType="int">
+        select start_time from tb_transcription where sentence_index=#{currentIndex};
+    </select>
+    
+    <select id="getAllByTaskKey" resultMap="transcriptionResultMap">
+        select * from tb_transcription
+        where task_key=#{taskKey}
+        order by sentence_index asc;
+
+    </select>
+
+
+
+</mapper>

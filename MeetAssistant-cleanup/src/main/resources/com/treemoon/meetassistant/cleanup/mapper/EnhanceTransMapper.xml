@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.treemoon.meetassistant.cleanup.mapper.EnhanceTransMapper">
+    
+    <resultMap id="enhanceTransResultMap" type="Transcription">
+        <result column="start_time" property="startTime"/>
+        <result column="sentence_index" property="sentenceIndex"/>
+        <result column="task_key" property="taskKey"/>
+        <result column="text_content" property="textContent"/>
+    </resultMap>
+
+    <select id="getAllByTaskKey" resultMap="enhanceTransResultMap">
+        select * from tb_enhancetrans
+        where task_key=#{taskKey}
+        order by sentence_index asc;
+    </select>
+
+    <select id="selectAllBiggerThanIndex" resultMap="enhanceTransResultMap">
+        select * from tb_enhancetrans
+        where sentence_index &gt;= #{lastEventIndex}
+         AND task_key = #{taskKey};
+    </select>
+
+    <insert id="addEnhanceTrans" useGeneratedKeys="true" keyProperty="id">
+        insert into tb_enhancetrans(sentence_index, text_content, start_time, card, task_key)
+            value (#{sentenceIndex},#{textContent},#{startTime},#{card},#{taskKey});
+    </insert>
+
+</mapper>

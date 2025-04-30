@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.treemoon.meetassistant.cleanup.mapper.MeetingMapper">
+
+    <resultMap id="meetingResultMap" type="Meeting">
+        <result column="task_id" property="taskId" />
+        <result column="task_key" property="taskKey" />
+        <result column="meeting_join_url" property="meetingJoinUrl" />
+        <result column="request_id" property="requestId" />
+        <result column="audio_resource" property="audioResource" />
+    </resultMap>
+
+    <insert id="addMeeting" useGeneratedKeys="true" keyProperty="id">
+        insert into tb_meeting(task_id, task_key, meeting_join_url, request_id , audio_resource)
+        value (#{taskId},#{taskKey},#{meetingJoinUrl},#{requestId},#{audioResource});
+    </insert>
+
+    <select id="selectAllByTaskKey" resultMap="meetingResultMap">
+        select *
+        from tb_meeting
+        where task_key=#{taskKey}
+    </select>
+
+    <delete id="deleteMeetingByTaskKey">
+        delete from tb_meeting where task_key=#{taskKey}
+    </delete>
+    
+    <select id="PlagiarismCheckTaskKey" resultType="java.lang.Boolean">
+        select exists(
+            select 1
+            from tb_meeting
+            where task_key = #{taskKey}
+        )
+    </select>
+
+</mapper>
+
